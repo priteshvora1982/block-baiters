@@ -8,25 +8,38 @@ const ERR  = (...args) => console.error('[BlockBaiters]', ...args);
 LOG('🎣 content.js loaded on', location.href);
 
 // ── Selectors ────────────────────────────────────────────────────────────────
-// LinkedIn changes its DOM frequently — we cast a wide net and log what hits.
+// LinkedIn migrated to hashed atomic CSS (e.g. _393f7ff0) — class selectors
+// are unreliable. We rely exclusively on data-* attributes which are stable.
 
 const POST_SELECTORS = [
-  'div.feed-shared-update-v2',
-  'div[data-id^="urn:li:activity"]',
-  'div[data-id^="urn:li:aggregate"]',
+  // New LinkedIn Renaissance UI (2024+) — data-urn is the most stable
   'div[data-urn^="urn:li:activity"]',
   'div[data-urn^="urn:li:aggregate"]',
+  'div[data-urn^="urn:li:share"]',
+  // data-id variants (older/parallel UI)
+  'div[data-id^="urn:li:activity"]',
+  'div[data-id^="urn:li:aggregate"]',
+  // Occludable feed items (both old and new UI)
+  '[data-occludable-entity-urn]',
   'li[data-occludable-entity-urn]',
-  '.occludable-update',
-  '[data-id]',
+  // testid-based (semi-stable)
+  '[data-testid="main-feed-activity-card"]',
+  '[data-testid="feed-shared-update"]',
 ];
 
 const TEXT_SELECTORS = [
+  // New UI — testid is the most stable anchor for text
+  '[data-testid="main-feed-activity-card__commentary"]',
+  '[data-testid="feed-shared-text"]',
+  // Expandable text (see more / see less button sibling)
+  '[data-testid="expandable-text-content"]',
+  // Old class names — still present on some LinkedIn rollouts
   '.feed-shared-update-v2__description',
   '.feed-shared-text',
   '.feed-shared-text-view',
   '.update-components-text',
   '.feed-shared-inline-show-more-text',
+  // Generic fallbacks
   '.break-words',
   'span[dir="ltr"]',
 ];
@@ -124,13 +137,27 @@ chrome.storage.onChanged.addListener((changes) => {
 // ── Post processing ───────────────────────────────────────────────────────────
 
 function getPostText(postEl) {
-  const textEl = postEl.querySelector(TEXT_SELECTOR);
-  if (textEl) {
-    const text = textEl.innerText || textEl.textContent || '';
-    LOG(`  📝 Text via selector (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}..."`);
+  // 1. Try each text selector individually so we can log which one hits
+  for (const sel of TEXT_SELECTORS) {
+    const el = postEl.querySelector(sel);
+    if (el) {
+      const text = el.innerText || el.textContent || '';
+      if (text.trim()) {
+        LOG(`  📝 Text via "${sel}" (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}"`);
+        return text;
+      }
+    }
+  }
+
+  // 2. Fallback: look for any span[dir="ltr"] or p inside the post
+  const anyText = postEl.querySelector('span[dir="ltr"], p, [role="article"]');
+  if (anyText) {
+    const text = anyText.innerText || anyText.textContent || '';
+    WARN(`  ⚠️  Fallback text via <${anyText.tagName.toLowerCase()}> (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}"`);
     return text;
   }
-  // Fallback: full post text
+
+  // 3. Last resort: entire post element
   const text = postEl.innerText || postEl.textContent || '';
   WARN(`  ⚠️  No text selector matched — using full innerText (${text.length} chars)`);
   return text;
