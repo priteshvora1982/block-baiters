@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Block Baiters — Icon Concepts</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0F172A;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: white;
+    padding: 48px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #64748B;
+    margin-bottom: 40px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    max-width: 900px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+  .sizes {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    background: #1E293B;
+    border-radius: 16px;
+    padding: 24px 20px;
+    width: 100%;
+  }
+  .size-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+  }
+  .size-label {
+    font-size: 10px;
+    color: #475569;
+    width: 28px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  img.hero { width: 128px; height: 128px; }
+  img.mid  { width: 48px;  height: 48px; }
+  img.tiny { width: 16px;  height: 16px; }
+  .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #94A3B8;
+    text-transform: uppercase;
+  }
+  .tag {
+    font-size: 11px;
+    color: #475569;
+    text-align: center;
+    line-height: 1.5;
+  }
+  /* Toolbar simulation */
+  .toolbar-sim {
+    background: #E2E8F0;
+    border-radius: 6px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+  }
+  .toolbar-dot { width: 8px; height: 8px; border-radius: 50%; background: #94A3B8; }
+  .toolbar-label { font-size: 10px; color: #64748B; }
+</style>
+</head>
+<body>
+
+<h1>Block Baiters — Icon Concepts</h1>
+
+<div class="grid">
+
+  <!-- A -->
+  <div class="card">
+    <div class="sizes">
+      <div class="size-row">
+        <span class="size-label">128</span>
+        <img class="hero" src="concept-a.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">48</span>
+        <img class="mid" src="concept-a.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">16</span>
+        <img class="tiny" src="concept-a.svg"/>
+        <div class="toolbar-sim">
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <img class="tiny" src="concept-a.svg"/>
+          <span class="toolbar-label">toolbar preview</span>
+        </div>
+      </div>
+    </div>
+    <div class="label">A — Hook Blocked</div>
+    <div class="tag">Coral gradient<br/>White hook + ban circle</div>
+  </div>
+
+  <!-- B -->
+  <div class="card">
+    <div class="sizes">
+      <div class="size-row">
+        <span class="size-label">128</span>
+        <img class="hero" src="concept-b.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">48</span>
+        <img class="mid" src="concept-b.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">16</span>
+        <img class="tiny" src="concept-b.svg"/>
+        <div class="toolbar-sim">
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <img class="tiny" src="concept-b.svg"/>
+          <span class="toolbar-label">toolbar preview</span>
+        </div>
+      </div>
+    </div>
+    <div class="label">B — Night Mode</div>
+    <div class="tag">Dark navy<br/>Blue hook + coral X</div>
+  </div>
+
+  <!-- C -->
+  <div class="card">
+    <div class="sizes">
+      <div class="size-row">
+        <span class="size-label">128</span>
+        <img class="hero" src="concept-c.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">48</span>
+        <img class="mid" src="concept-c.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">16</span>
+        <img class="tiny" src="concept-c.svg"/>
+        <div class="toolbar-sim">
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <img class="tiny" src="concept-c.svg"/>
+          <span class="toolbar-label">toolbar preview</span>
+        </div>
+      </div>
+    </div>
+    <div class="label">C — Bold Slash</div>
+    <div class="tag">White background<br/>Black hook + red slash</div>
+  </div>
+
+  <!-- D -->
+  <div class="card">
+    <div class="sizes">
+      <div class="size-row">
+        <span class="size-label">128</span>
+        <img class="hero" src="concept-d.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">48</span>
+        <img class="mid" src="concept-d.svg"/>
+      </div>
+      <div class="size-row">
+        <span class="size-label">16</span>
+        <img class="tiny" src="concept-d.svg"/>
+        <div class="toolbar-sim">
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <div class="toolbar-dot"></div>
+          <img class="tiny" src="concept-d.svg"/>
+          <span class="toolbar-label">toolbar preview</span>
+        </div>
+      </div>
+    </div>
+    <div class="label">D — Fish Blocked</div>
+    <div class="tag">Purple-blue gradient<br/>Fish + BLOCKED stamp</div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1280px; height: 640px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .banner {
+    width: 1280px; height: 640px;
+    background: linear-gradient(135deg, #1E0A3C 0%, #0F172A 50%, #0C1A3A 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 64px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Subtle radial glow */
+  .banner::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: -100px;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .banner::after {
+    content: '';
+    position: absolute;
+    bottom: -100px; right: 200px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(37,99,235,0.2) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Left: text */
+  .left {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    z-index: 1;
+    max-width: 560px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(124,58,237,0.25);
+    border: 1px solid rgba(124,58,237,0.5);
+    border-radius: 100px;
+    padding: 6px 16px;
+    width: fit-content;
+    font-size: 13px;
+    font-weight: 600;
+    color: #A78BFA;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.05;
+    color: white;
+    letter-spacing: -2px;
+  }
+  h1 span {
+    background: linear-gradient(90deg, #A78BFA, #60A5FA);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .tagline {
+    font-size: 22px;
+    color: #94A3B8;
+    line-height: 1.5;
+    font-weight: 400;
+  }
+  .tagline strong {
+    color: #E2E8F0;
+    font-weight: 600;
+  }
+
+  .cta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .pill {
+    background: linear-gradient(135deg, #7C3AED, #2563EB);
+    border-radius: 100px;
+    padding: 14px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.02em;
+  }
+  .sub-pill {
+    font-size: 14px;
+    color: #64748B;
+  }
+
+  /* Right: mockup */
+  .right {
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 480px;
+  }
+
+  .feed-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    backdrop-filter: blur(10px);
+  }
+  .feed-card.blocked {
+    opacity: 0.35;
+    position: relative;
+  }
+  .feed-card.clean {
+    border-color: rgba(124,58,237,0.4);
+    box-shadow: 0 0 0 1px rgba(124,58,237,0.3), 0 4px 24px rgba(124,58,237,0.15);
+  }
+
+  .avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .avatar-bait { background: linear-gradient(135deg, #94A3B8, #64748B); }
+  .avatar-real { background: linear-gradient(135deg, #7C3AED, #2563EB); }
+
+  .card-body { flex: 1; }
+  .card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #CBD5E1;
+    margin-bottom: 5px;
+  }
+  .card-text {
+    font-size: 12px;
+    color: #64748B;
+    line-height: 1.5;
+  }
+  .card-text.bait { color: #475569; }
+  .card-text.real { color: #94A3B8; }
+
+  /* Blocked stamp */
+  .stamp {
+    position: absolute;
+    top: 50%; right: 20px;
+    transform: translateY(-50%) rotate(-12deg);
+    background: #FF3D57;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .feed-card.blocked { position: relative; }
+
+  .fishing-line {
+    text-align: center;
+    font-size: 13px;
+    color: #334155;
+    letter-spacing: 0.05em;
+  }
+
+  /* Real post glow dot */
+  .glow-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #7C3AED;
+    flex-shrink: 0;
+    margin-top: 5px;
+    box-shadow: 0 0 6px rgba(124,58,237,0.8);
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="left">
+    <div class="badge">🎣 Chrome Extension</div>
+    <h1>Block<br/><span>Baiters.</span></h1>
+    <p class="tagline">
+      LinkedIn's <strong>"Comment YES" crowd</strong><br/>
+      finally has nowhere to hide.
+    </p>
+    <div class="cta">
+      <div class="pill">Not today, engagement farmer 🚜</div>
+    </div>
+    <div class="sub-pill">Free · No sign-up · Works instantly</div>
+  </div>
+
+  <div class="right">
+    <!-- Bait post — blocked -->
+    <div class="feed-card blocked">
+      <div class="avatar avatar-bait"></div>
+      <div class="card-body">
+        <div class="card-name">Guru McInfluencer</div>
+        <div class="card-text bait">Comment "YES" below and I'll send you my FREE 47-step morning routine PDF 🔥🔥🔥</div>
+      </div>
+      <div class="stamp">Blocked 🎣</div>
+    </div>
+
+    <div class="fishing-line">↓ &nbsp; blocked · reel it in &nbsp; ↓</div>
+
+    <!-- Clean post — glowing -->
+    <div class="feed-card clean">
+      <div class="glow-dot"></div>
+      <div class="avatar avatar-real"></div>
+      <div class="card-body">
+        <div class="card-name">Someone actually worth reading</div>
+        <div class="card-text real">After a decade building products, the biggest lesson: talk to your users every single week. Not monthly. Weekly. The signal degrades fast.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

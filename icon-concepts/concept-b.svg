@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Dark navy background -->
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+
+  <!-- Glowing hook in electric blue -->
+  <circle cx="64" cy="26" r="7" stroke="#38BDF8" stroke-width="6" fill="none"/>
+  <line x1="64" y1="33" x2="64" y2="78" stroke="#38BDF8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 64 78 Q 64 104 90 104 Q 108 104 108 88"
+        stroke="#38BDF8" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <path d="M 108 88 L 96 82" stroke="#38BDF8" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Bold X stamp in coral -->
+  <line x1="36" y1="36" x2="92" y2="92" stroke="#FF6B35" stroke-width="10" stroke-linecap="round"/>
+  <line x1="92" y1="36" x2="36" y2="92" stroke="#FF6B35" stroke-width="10" stroke-linecap="round"/>
+
+  <!-- Circle around X -->
+  <circle cx="64" cy="64" r="32" stroke="#FF6B35" stroke-width="6" fill="none"/>
+</svg>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Privacy Policy — Block Baiters</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0F172A;
+      color: #CBD5E1;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 80px 24px;
+    }
+    .container { max-width: 640px; width: 100%; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4);
+      border-radius: 100px; padding: 5px 14px; margin-bottom: 32px;
+      font-size: 12px; font-weight: 600; color: #A78BFA;
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    h1 {
+      font-size: 42px; font-weight: 800; color: white;
+      letter-spacing: -1.5px; line-height: 1.1; margin-bottom: 12px;
+    }
+    h1 span {
+      background: linear-gradient(90deg, #A78BFA, #60A5FA);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .updated {
+      font-size: 13px; color: #475569; margin-bottom: 52px;
+    }
+    section { margin-bottom: 40px; }
+    h2 {
+      font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #64748B; margin-bottom: 12px;
+    }
+    p { font-size: 16px; line-height: 1.75; color: #94A3B8; }
+    p + p { margin-top: 12px; }
+    .highlight {
+      background: rgba(124,58,237,0.12);
+      border-left: 3px solid #7C3AED;
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin: 16px 0;
+    }
+    .highlight p { color: #C4B5FD; font-weight: 500; }
+    footer {
+      margin-top: 64px; padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      font-size: 13px; color: #334155;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    a { color: #7C3AED; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="badge">🎣 Block Baiters</div>
+    <h1>Privacy<br/><span>Policy.</span></h1>
+    <p class="updated">Last updated: March 31, 2026</p>
+
+    <section>
+      <h2>The short version</h2>
+      <div class="highlight">
+        <p>Block Baiters collects absolutely no personal data. Ever. Full stop. 🎣</p>
+      </div>
+      <p>We built this extension because LinkedIn engagement bait is annoying, not because we wanted access to your data. Your browsing activity, LinkedIn content, and personal information are never collected, transmitted, or stored anywhere outside your own device.</p>
+    </section>
+
+    <section>
+      <h2>What we store</h2>
+      <p>The only data Block Baiters saves is your preferences — specifically:</p>
+      <p>• Whether the extension is enabled or disabled<br/>
+         • Your chosen sensitivity level (Loose / Moderate / Strict)<br/>
+         • A running count of blocked posts (just for the little number in the popup)</p>
+      <p>This data lives exclusively in <strong>Chrome's local sync storage</strong> on your own device. It is never sent to any server, third party, or anyone else — including us.</p>
+    </section>
+
+    <section>
+      <h2>What we don't do</h2>
+      <p>• We do not read, store, or transmit any LinkedIn post content<br/>
+         • We do not track which pages you visit<br/>
+         • We do not use analytics or telemetry of any kind<br/>
+         • We do not sell, share, or monetise any data<br/>
+         • We do not have a server. There is nothing to send data to.</p>
+    </section>
+
+    <section>
+      <h2>Permissions explained</h2>
+      <p><strong style="color:#E2E8F0;">storage</strong> — used only to save your on/off toggle and sensitivity preference locally in Chrome.</p>
+      <p><strong style="color:#E2E8F0;">host_permissions (linkedin.com)</strong> — required to run the content script that detects and hides bait posts on LinkedIn pages. The extension only activates on LinkedIn.</p>
+    </section>
+
+    <section>
+      <h2>Contact</h2>
+      <p>Questions? Found a bug? Got a bait pattern we missed? Open an issue on GitHub or reach out directly. We're just two people fed up with LinkedIn spam, not a corporation with a legal team.</p>
+    </section>
+
+    <footer>
+      <span>Block Baiters · Chrome Extension</span>
+      <span>No data. No servers. No nonsense. 🎣</span>
+    </footer>
+  </div>
+</body>
+</html>

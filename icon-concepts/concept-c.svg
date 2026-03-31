@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <!-- Clean white background with bold minimal design -->
+  <rect width="128" height="128" rx="28" fill="#F8FAFC"/>
+
+  <!-- Big bold hook silhouette in near-black -->
+  <circle cx="64" cy="24" r="8" stroke="#0F172A" stroke-width="7" fill="none"/>
+  <line x1="64" y1="32" x2="64" y2="76" stroke="#0F172A" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 64 76 Q 64 106 93 106 Q 114 106 114 85"
+        stroke="#0F172A" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M 114 85 L 100 78" stroke="#0F172A" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Thick red diagonal slash — the statement -->
+  <line x1="20" y1="20" x2="108" y2="108" stroke="#FF3D57" stroke-width="11" stroke-linecap="round"/>
+</svg>

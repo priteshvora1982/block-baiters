@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C3AED"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Purple-to-blue gradient background -->
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+
+  <!-- Fish on a hook — bold white -->
+  <!-- Line coming from top -->
+  <line x1="64" y1="8" x2="64" y2="36" stroke="white" stroke-width="4" stroke-linecap="round" stroke-dasharray="4 4"/>
+  <!-- Hook -->
+  <circle cx="64" cy="36" r="6" stroke="white" stroke-width="5" fill="none"/>
+  <path d="M 64 42 Q 64 62 82 62 Q 96 62 96 50"
+        stroke="white" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M 96 50 L 88 44" stroke="white" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Fish body -->
+  <ellipse cx="52" cy="82" rx="22" ry="14" fill="white"/>
+  <!-- Fish tail -->
+  <polygon points="74,82 88,70 88,94" fill="white"/>
+  <!-- Fish eye -->
+  <circle cx="40" cy="79" r="3" fill="#2563EB"/>
+  <!-- Fish smile — cheeky -->
+  <path d="M 36 85 Q 40 89 44 85" stroke="#2563EB" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+  <!-- Bold red BLOCK stamp diagonally -->
+  <rect x="22" y="68" width="84" height="20" rx="4" fill="#FF3D57" transform="rotate(-20 64 78)"/>
+  <text x="64" y="84" font-family="'Arial Black', sans-serif" font-size="13" font-weight="900"
+        fill="white" text-anchor="middle" transform="rotate(-20 64 78)" letter-spacing="1">BLOCKED</text>
+</svg>

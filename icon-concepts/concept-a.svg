@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B35"/>
+      <stop offset="100%" stop-color="#FF3D57"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+
+  <!-- Fishing hook — clean bold white -->
+  <!-- Eye loop at top -->
+  <circle cx="64" cy="26" r="7" stroke="white" stroke-width="6" fill="none"/>
+  <!-- Shank -->
+  <line x1="64" y1="33" x2="64" y2="78" stroke="white" stroke-width="7" stroke-linecap="round"/>
+  <!-- Bend + point -->
+  <path d="M 64 78 Q 64 104 90 104 Q 108 104 108 88"
+        stroke="white" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- Barb tip -->
+  <path d="M 108 88 L 96 82" stroke="white" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Bold NO slash circle -->
+  <circle cx="64" cy="64" r="44" stroke="white" stroke-width="7" fill="none" opacity="0.9"/>
+  <line x1="32" y1="32" x2="96" y2="96" stroke="white" stroke-width="7" stroke-linecap="round" opacity="0.9"/>
+</svg>
