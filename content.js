@@ -1,103 +1,182 @@
 // content.js — LinkedIn feed scanner
 // Depends on patterns.js (loaded first via manifest content_scripts order)
 
-const FEED_PATH_RE = /^\/($|feed|mynetwork|in\/|search\/)/;
-const POST_SELECTOR = [
+const LOG = (...args) => console.log('[BlockBaiters]', ...args);
+const WARN = (...args) => console.warn('[BlockBaiters]', ...args);
+const ERR  = (...args) => console.error('[BlockBaiters]', ...args);
+
+LOG('🎣 content.js loaded on', location.href);
+
+// ── Selectors ────────────────────────────────────────────────────────────────
+// LinkedIn changes its DOM frequently — we cast a wide net and log what hits.
+
+const POST_SELECTORS = [
   'div.feed-shared-update-v2',
   'div[data-id^="urn:li:activity"]',
   'div[data-id^="urn:li:aggregate"]',
-].join(', ');
+  'div[data-urn^="urn:li:activity"]',
+  'div[data-urn^="urn:li:aggregate"]',
+  'li[data-occludable-entity-urn]',
+  '.occludable-update',
+  '[data-id]',
+];
 
-const TEXT_SELECTOR = [
+const TEXT_SELECTORS = [
   '.feed-shared-update-v2__description',
   '.feed-shared-text',
   '.feed-shared-text-view',
   '.update-components-text',
+  '.feed-shared-inline-show-more-text',
+  '.break-words',
   'span[dir="ltr"]',
-].join(', ');
+];
+
+const POST_SELECTOR  = POST_SELECTORS.join(', ');
+const TEXT_SELECTOR  = TEXT_SELECTORS.join(', ');
 
 let settings = { enabled: true, sensitivity: 'moderate' };
 let filteredCount = 0;
 let processedPosts = new WeakSet();
 
-// ── Settings ────────────────────────────────────────────────────────────────
+// ── DOM selector discovery ───────────────────────────────────────────────────
+// Logs what's actually in the page so we can tune selectors if needed.
+
+function discoverDOM() {
+  LOG('🔍 Running DOM discovery on', location.pathname);
+
+  // Check each selector individually
+  POST_SELECTORS.forEach(sel => {
+    const matches = document.querySelectorAll(sel);
+    if (matches.length > 0) {
+      LOG(`  ✅ POST selector "${sel}" → ${matches.length} elements`);
+    } else {
+      WARN(`  ❌ POST selector "${sel}" → 0 elements`);
+    }
+  });
+
+  // Log first few data-* attributes of likely post containers to help tune selectors
+  const candidates = document.querySelectorAll('[data-id],[data-urn],[data-occludable-entity-urn]');
+  LOG(`  📦 Elements with data-id/data-urn/data-occludable-entity-urn: ${candidates.length}`);
+  Array.from(candidates).slice(0, 5).forEach((el, i) => {
+    LOG(`    [${i}] <${el.tagName.toLowerCase()} class="${el.className.slice(0,60)}..." data-id="${el.dataset.id || ''}" data-urn="${el.dataset.urn || ''}">`);
+  });
+
+  // Check text selectors
+  TEXT_SELECTORS.forEach(sel => {
+    const matches = document.querySelectorAll(sel);
+    if (matches.length > 0) {
+      LOG(`  ✅ TEXT selector "${sel}" → ${matches.length} elements`);
+    } else {
+      WARN(`  ❌ TEXT selector "${sel}" → 0 elements`);
+    }
+  });
+
+  // Log main/feed element
+  const main = document.querySelector('main');
+  LOG(`  📄 <main> found: ${!!main}`);
+  const feedContainer = document.querySelector('.scaffold-finite-scroll__content, .core-rail, [role="main"]');
+  LOG(`  📄 feed container: ${feedContainer ? feedContainer.className.slice(0,80) : 'NOT FOUND'}`);
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────────
 
 function loadSettings(cb) {
   chrome.storage.sync.get(['enabled', 'sensitivity', 'filteredCount'], (data) => {
-    settings.enabled = data.enabled !== false; // default true
+    if (chrome.runtime.lastError) {
+      ERR('storage.sync.get failed:', chrome.runtime.lastError);
+      cb && cb(); return;
+    }
+    settings.enabled    = data.enabled !== false;
     settings.sensitivity = data.sensitivity || 'moderate';
-    filteredCount = data.filteredCount || 0;
+    filteredCount        = data.filteredCount || 0;
+    LOG('⚙️  Settings loaded:', JSON.stringify(settings), '| filteredCount:', filteredCount);
     cb && cb();
   });
 }
 
 function saveFilteredCount() {
-  chrome.storage.sync.set({ filteredCount });
+  chrome.storage.sync.set({ filteredCount }, () => {
+    if (chrome.runtime.lastError) ERR('saveFilteredCount failed:', chrome.runtime.lastError);
+  });
 }
 
 // Listen for settings changes from popup
 chrome.storage.onChanged.addListener((changes) => {
+  LOG('⚙️  Storage changed:', JSON.stringify(changes));
   if (changes.enabled !== undefined) {
     settings.enabled = changes.enabled.newValue;
-    if (!settings.enabled) {
-      revealAll();
-    } else {
-      scanAll();
-    }
+    LOG(settings.enabled ? '✅ Extension enabled — rescanning' : '⏸️  Extension disabled — revealing all');
+    if (!settings.enabled) revealAll(); else scanAll();
   }
   if (changes.sensitivity !== undefined) {
     settings.sensitivity = changes.sensitivity.newValue;
-    // Re-evaluate all already-processed posts
+    LOG('🎚️  Sensitivity changed to:', settings.sensitivity, '— re-evaluating all posts');
     processedPosts = new WeakSet();
     document.querySelectorAll('.bait-blocker-wrapper').forEach(el => el.remove());
     scanAll();
   }
   if (changes.filteredCount !== undefined && changes.filteredCount.newValue === 0) {
     filteredCount = 0;
+    LOG('🔄 Count reset');
   }
 });
 
-// ── Post processing ──────────────────────────────────────────────────────────
+// ── Post processing ───────────────────────────────────────────────────────────
 
 function getPostText(postEl) {
-  // Try dedicated text containers first
   const textEl = postEl.querySelector(TEXT_SELECTOR);
-  if (textEl) return textEl.innerText || textEl.textContent || '';
-  // Fall back to the whole post text (noisier but catches edge cases)
-  return postEl.innerText || postEl.textContent || '';
+  if (textEl) {
+    const text = textEl.innerText || textEl.textContent || '';
+    LOG(`  📝 Text via selector (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}..."`);
+    return text;
+  }
+  // Fallback: full post text
+  const text = postEl.innerText || postEl.textContent || '';
+  WARN(`  ⚠️  No text selector matched — using full innerText (${text.length} chars)`);
+  return text;
 }
 
 function processPost(postEl) {
   if (processedPosts.has(postEl)) return;
   processedPosts.add(postEl);
 
-  if (!settings.enabled) return;
+  if (!settings.enabled) {
+    LOG('⏸️  Skipping post (extension disabled)');
+    return;
+  }
+
+  const tag   = `<${postEl.tagName.toLowerCase()} data-id="${postEl.dataset.id || postEl.dataset.urn || '?'}">`;
+  LOG(`🔎 Processing post: ${tag}`);
 
   const text = getPostText(postEl);
-  if (!text.trim()) return;
+  if (!text.trim()) {
+    WARN('  ⚠️  Empty text — skipping post');
+    return;
+  }
 
-  if (isBait(text, settings.sensitivity)) {
-    hidePost(postEl, text);
+  const { score, labels } = scoreText(text, settings.sensitivity);
+  const threshold = { strict: 2, moderate: 3, loose: 5 }[settings.sensitivity] ?? 3;
+
+  LOG(`  📊 Score: ${score}/${threshold} | Labels: [${labels.join(', ') || 'none'}] | Sensitivity: ${settings.sensitivity}`);
+
+  if (score >= threshold) {
+    LOG(`  🚫 BAIT DETECTED — hiding post (score ${score} ≥ threshold ${threshold})`);
+    hidePost(postEl);
     filteredCount++;
     saveFilteredCount();
-    // Notify popup if open
     chrome.runtime.sendMessage({ type: 'COUNT_UPDATE', count: filteredCount }).catch(() => {});
+  } else {
+    LOG(`  ✅ Post clean (score ${score} < threshold ${threshold}) — leaving visible`);
   }
 }
 
-function hidePost(postEl, text) {
-  // Wrap in a container so we can swap between hidden/visible state
+function hidePost(postEl) {
   const wrapper = document.createElement('div');
   wrapper.className = 'bait-blocker-wrapper';
   postEl.parentNode.insertBefore(wrapper, postEl);
   wrapper.appendChild(postEl);
-
-  // Hide the real post
   postEl.classList.add('bait-hidden');
 
-  // Inject the placeholder banner
-  const banner = document.createElement('div');
-  banner.className = 'bait-banner';
   const BAIT_MESSAGES = [
     'Hook, line, and blocked. 🎣',
     'Caught a baiter. Threw it back. 🐟',
@@ -106,10 +185,12 @@ function hidePost(postEl, text) {
     'This post was fishing for you. We cut the line. ✂️',
     'Comment YES if you want this blocked. Oh wait — already done. ✅',
     'Another one bites the bait. Gone. 🎣',
-    'Your feed thanks us. You\'re welcome. 🙏',
+    "Your feed thanks us. You're welcome. 🙏",
   ];
   const msg = BAIT_MESSAGES[Math.floor(Math.random() * BAIT_MESSAGES.length)];
 
+  const banner = document.createElement('div');
+  banner.className = 'bait-banner';
   banner.innerHTML = `
     <span class="bait-banner__icon">🎣</span>
     <span class="bait-banner__text">${msg}</span>
@@ -117,62 +198,89 @@ function hidePost(postEl, text) {
     <button class="bait-banner__dismiss" type="button">✕</button>
   `;
   wrapper.insertBefore(banner, postEl);
+  LOG('  🎨 Banner injected');
 
-  // Peek: toggle visibility without removing from processed set
   const peekBtn = banner.querySelector('.bait-banner__peek');
   let peeking = false;
   peekBtn.addEventListener('click', () => {
     peeking = !peeking;
     postEl.classList.toggle('bait-hidden', !peeking);
     banner.classList.toggle('bait-peeking', peeking);
-    peekBtn.textContent = peeking ? 'Put it back 🙈' : 'I\'m curious...';
+    peekBtn.textContent = peeking ? 'Put it back 🙈' : "I'm curious...";
+    LOG(peeking ? '👀 User peeked at blocked post' : '🙈 User re-hid post');
   });
 
-  // Dismiss: permanently show this post for this session
   banner.querySelector('.bait-banner__dismiss').addEventListener('click', () => {
+    LOG('✕ User dismissed block on post');
     postEl.classList.remove('bait-hidden');
     banner.remove();
-    // Unwrap — move post back out of wrapper
     wrapper.parentNode.insertBefore(postEl, wrapper);
     wrapper.remove();
   });
 }
 
 function revealAll() {
+  const hidden  = document.querySelectorAll('.bait-hidden').length;
+  const banners = document.querySelectorAll('.bait-banner').length;
+  LOG(`👁️  Revealing all — removing ${hidden} hidden posts and ${banners} banners`);
   document.querySelectorAll('.bait-hidden').forEach(el => el.classList.remove('bait-hidden'));
   document.querySelectorAll('.bait-banner').forEach(el => el.remove());
 }
 
 function scanAll() {
-  document.querySelectorAll(POST_SELECTOR).forEach(processPost);
+  const posts = document.querySelectorAll(POST_SELECTOR);
+  LOG(`🔍 scanAll() — found ${posts.length} post elements in DOM`);
+  if (posts.length === 0) {
+    WARN('  ⚠️  No posts found — selectors may need updating for current LinkedIn DOM');
+    discoverDOM();
+  }
+  posts.forEach(processPost);
 }
 
-// ── MutationObserver ─────────────────────────────────────────────────────────
+// ── MutationObserver ──────────────────────────────────────────────────────────
 
 function startObserver() {
   const feedRoot = document.querySelector('main') || document.body;
+  LOG(`👁️  MutationObserver attached to: <${feedRoot.tagName.toLowerCase()}>`);
+
+  let mutationCount = 0;
+  let newPostCount  = 0;
 
   const observer = new MutationObserver((mutations) => {
     if (!settings.enabled) return;
+    mutationCount += mutations.length;
+
+    let found = 0;
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        // Check if node itself is a post
         if (node.matches && node.matches(POST_SELECTOR)) {
+          found++;
           processPost(node);
         }
-        // Check descendants
-        node.querySelectorAll && node.querySelectorAll(POST_SELECTOR).forEach(processPost);
+        if (node.querySelectorAll) {
+          const nested = node.querySelectorAll(POST_SELECTOR);
+          nested.forEach(el => { found++; processPost(el); });
+        }
       }
+    }
+
+    newPostCount += found;
+    if (found > 0) {
+      LOG(`👁️  Observer: +${found} new post(s) | total mutations: ${mutationCount} | total new posts seen: ${newPostCount}`);
     }
   });
 
   observer.observe(feedRoot, { childList: true, subtree: true });
+  LOG('✅ Observer running');
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 
+LOG('⏳ Waiting for settings...');
 loadSettings(() => {
+  LOG('🚀 Init complete — running initial scan');
+  discoverDOM();
   scanAll();
   startObserver();
 });

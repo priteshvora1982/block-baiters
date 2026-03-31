@@ -178,3 +178,19 @@ function isBait(text, sensitivity = 'moderate') {
   const { score } = scoreText(text, sensitivity);
   return score >= threshold;
 }
+
+// ── Debug helpers (callable from DevTools console) ────────────────────────────
+// Usage:  BlockBaiters.test("Comment YES to get the PDF")
+// Usage:  BlockBaiters.scan()  — re-score every visible post text on the page
+
+window.BlockBaiters = {
+  test(text, sensitivity = 'moderate') {
+    const result = scoreText(text, sensitivity);
+    const threshold = THRESHOLDS[sensitivity] ?? 3;
+    console.log(`[BlockBaiters] score=${result.score}/${threshold} labels=[${result.labels.join(', ')}] → ${result.score >= threshold ? '🚫 BAIT' : '✅ CLEAN'}`);
+    return result;
+  },
+  scoreText,
+  isBait,
+  THRESHOLDS,
+};
