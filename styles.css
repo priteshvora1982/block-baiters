@@ -1,71 +1,305 @@
-/* styles.css — injected into LinkedIn pages */
+/* styles.css — Block Baiters, injected into LinkedIn */
 
+/* ── Hidden post ──────────────────────────────────────────────────────────── */
 .bait-hidden {
   display: none !important;
 }
 
+/* ── Full-card wrapper ────────────────────────────────────────────────────── */
 .bait-blocker-wrapper {
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
+/* ── Full-card banner ─────────────────────────────────────────────────────── */
 .bait-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 36px 24px 28px;
+  background: linear-gradient(135deg, #12002a 0%, #0d1b3e 100%);
+  border: 2px solid #7c3aed;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  box-shadow: 0 4px 24px rgba(124, 58, 237, 0.4);
+  min-height: 150px;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.bait-banner__top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.bait-banner__icon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 10px rgba(124,58,237,0.9));
+}
+
+.bait-banner__text {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.01em;
+}
+
+.bait-banner__author {
+  font-size: 12px;
+  color: #7c5cbf;
+  font-style: italic;
+}
+
+.bait-banner__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.bait-banner__peek {
+  background: #7c3aed;
+  border: none;
+  border-radius: 20px;
+  padding: 7px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.bait-banner__peek:hover {
+  background: #6d28d9;
+  transform: scale(1.04);
+}
+
+.bait-banner__dismiss {
+  background: none;
+  border: 1px solid #3b1f6e;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  color: #6b4fa0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.bait-banner__dismiss:hover {
+  background: #2a1050;
+  color: #a78bfa;
+}
+
+/* ── Peek state ───────────────────────────────────────────────────────────── */
+.bait-banner.bait-peeking {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #1a0a00 0%, #1c1204 100%);
+}
+
+.bait-banner.bait-peeking .bait-banner__top::after {
+  content: " — don't say we didn't warn you 👀";
+  font-size: 12px;
+  color: #f59e0b;
+  font-style: italic;
+  font-weight: 400;
+  display: block;
+  margin-top: 4px;
+}
+
+/* ── Side panel container ─────────────────────────────────────────────────── */
+#bb-container {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── Slide-out tab ────────────────────────────────────────────────────────── */
+#bb-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: #7c3aed;
+  color: #fff;
+  padding: 14px 9px;
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  user-select: none;
+  box-shadow: -3px 0 16px rgba(124,58,237,0.5);
+  transition: background 0.15s;
+  min-width: 38px;
+}
+
+#bb-tab:hover {
+  background: #6d28d9;
+}
+
+.bb-tab-icon { font-size: 18px; line-height: 1; }
+
+.bb-tab-count {
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* ── Panel ────────────────────────────────────────────────────────────────── */
+#bb-panel {
+  width: 0;
+  overflow: hidden;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #100720;
+  border: 2px solid #7c3aed;
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  box-shadow: -6px 0 30px rgba(0,0,0,0.5);
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+#bb-container.open #bb-panel {
+  width: 300px;
+}
+
+.bb-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid #1e0d40;
+  font-weight: 800;
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.bb-panel__header button {
+  background: none;
+  border: none;
+  color: #7c5cbf;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0 0 0 8px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.bb-panel__header button:hover { color: #fff; }
+
+.bb-panel__stats {
+  padding: 8px 16px;
+  color: #6b4fa0;
+  font-size: 12px;
+  border-bottom: 1px solid #1e0d40;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.bb-panel__list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.bb-panel__list::-webkit-scrollbar { width: 4px; }
+.bb-panel__list::-webkit-scrollbar-track { background: transparent; }
+.bb-panel__list::-webkit-scrollbar-thumb { background: #3b1f6e; border-radius: 2px; }
+
+.bb-panel__item {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  background: #f3f2ef;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 13px;
-  color: #666;
-  margin-bottom: 4px;
+  border-bottom: 1px solid #1a0d35;
+  transition: background 0.12s;
 }
 
-.bait-banner__icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
+.bb-panel__item:hover { background: #160a30; }
 
-.bait-banner__text {
+.bb-panel__item-meta {
   flex: 1;
-  font-weight: 500;
+  min-width: 0;
 }
 
-.bait-banner__peek,
-.bait-banner__dismiss {
+.bb-panel__item-author {
+  font-weight: 600;
+  font-size: 13px;
+  color: #d8b4fe;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bb-panel__item-preview {
+  font-size: 11px;
+  color: #4b3575;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bb-panel__item-jump {
   background: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 3px 10px;
-  font-size: 12px;
+  border: 1px solid #3b1f6e;
+  border-radius: 6px;
+  color: #a78bfa;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
   cursor: pointer;
-  color: #555;
+  flex-shrink: 0;
   transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.bb-panel__item-jump:hover {
+  background: #5b21b6;
+  color: #fff;
+  border-color: #5b21b6;
+}
+
+.bb-panel__footer {
+  padding: 12px 16px;
+  border-top: 1px solid #1e0d40;
   flex-shrink: 0;
 }
 
-.bait-banner__peek:hover {
-  background: #0a66c2;
-  border-color: #0a66c2;
-  color: #fff;
+.bb-panel__footer button {
+  background: none;
+  border: 1px solid #3b1f6e;
+  border-radius: 8px;
+  color: #6b4fa0;
+  font-size: 12px;
+  padding: 7px 12px;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s, color 0.15s;
 }
 
-.bait-banner__dismiss {
-  border: none;
-  padding: 3px 8px;
-  color: #999;
+.bb-panel__footer button:hover {
+  background: #1e0d40;
+  color: #a78bfa;
 }
 
-.bait-banner__dismiss:hover {
-  color: #333;
-  background: #e5e4e1;
+/* ── Tab pulse on new block ───────────────────────────────────────────────── */
+@keyframes bb-pulse {
+  0%   { transform: scale(1); box-shadow: -3px 0 16px rgba(124,58,237,0.5); }
+  40%  { transform: scale(1.18); box-shadow: -3px 0 24px rgba(167,139,250,0.9); }
+  100% { transform: scale(1); box-shadow: -3px 0 16px rgba(124,58,237,0.5); }
 }
 
-.bait-banner.bait-peeking .bait-banner__text::after {
-  content: ' — don\'t say we didn\'t warn you 👀';
-  font-weight: normal;
-  font-style: italic;
-  color: #999;
+.bb-tab-pulse {
+  animation: bb-pulse 0.45s ease;
 }

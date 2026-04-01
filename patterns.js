@@ -16,6 +16,24 @@ const BAIT_PATTERNS = [
     re: /^\s*comment\s+(yes|no|done|interested|send|me|fire|in|below)\b/im,
     label: 'comment-word-bait'
   },
+  // "Comment [quoted word]" — e.g. Comment "CLAUDE", Comment 'YES', Comment «GO»
+  {
+    score: 3,
+    re: /^\s*\d*\.?\s*comment\s+["""''«»][\w\s]{1,20}["""''«»]\s*$/im,
+    label: 'comment-quoted-word'
+  },
+  // Numbered list CTA with comment as a step — "2. Comment X" or "Step 2: Comment X"
+  {
+    score: 3,
+    re: /^\s*(?:step\s*)?\d+[.):\-]\s*comment\s+.{1,30}$/im,
+    label: 'numbered-comment-step'
+  },
+  // "Comment X" anywhere + "I'll send" later in same post (multiline)
+  {
+    score: 3,
+    re: /comment\s+.{1,40}[\s\S]{0,300}i['']ll\s+send/i,
+    label: 'comment-ill-send'
+  },
   // "Drop a [word] in the comments / below"
   {
     score: 3,
