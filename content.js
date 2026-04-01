@@ -8,41 +8,36 @@ const ERR  = (...args) => console.error('[BlockBaiters]', ...args);
 LOG('🎣 content.js loaded on', location.href);
 
 // ── Selectors ────────────────────────────────────────────────────────────────
-// LinkedIn migrated to hashed atomic CSS (e.g. _393f7ff0) — class selectors
-// are unreliable. We rely exclusively on data-* attributes which are stable.
+// DOM spy confirmed: LinkedIn's new UI has NO data-urn/data-testid/data-id on
+// post elements. Only stable hook is the semantic class 'hasBreakWordsNoHyphen'
+// on post text containers. Strategy: anchor on text, walk UP to post container.
 
-const POST_SELECTORS = [
-  // New LinkedIn Renaissance UI (2024+) — data-urn is the most stable
-  'div[data-urn^="urn:li:activity"]',
-  'div[data-urn^="urn:li:aggregate"]',
-  'div[data-urn^="urn:li:share"]',
-  // data-id variants (older/parallel UI)
-  'div[data-id^="urn:li:activity"]',
-  'div[data-id^="urn:li:aggregate"]',
-  // Occludable feed items (both old and new UI)
-  '[data-occludable-entity-urn]',
-  'li[data-occludable-entity-urn]',
-  // testid-based (semi-stable)
-  '[data-testid="main-feed-activity-card"]',
-  '[data-testid="feed-shared-update"]',
-];
+// The one confirmed text anchor class from the DOM spy
+const TEXT_ANCHOR = '.hasBreakWordsNoHyphen';
 
-const TEXT_SELECTORS = [
-  // New UI — testid is the most stable anchor for text
-  '[data-testid="main-feed-activity-card__commentary"]',
-  '[data-testid="feed-shared-text"]',
-  // Expandable text (see more / see less button sibling)
-  '[data-testid="expandable-text-content"]',
-  // Old class names — still present on some LinkedIn rollouts
-  '.feed-shared-update-v2__description',
-  '.feed-shared-text',
-  '.feed-shared-text-view',
-  '.update-components-text',
-  '.feed-shared-inline-show-more-text',
-  // Generic fallbacks
-  '.break-words',
-  'span[dir="ltr"]',
-];
+// Walk up from a text element to find its post container
+// Posts are wrapped in <section> or <article> or <li> in LinkedIn's feed
+function findPostContainer(textEl) {
+  let el = textEl.parentElement;
+  for (let i = 0; i < 15; i++) {
+    if (!el || el === document.body) break;
+    const tag = el.tagName;
+    // section/article/li are the strongest post container signals
+    if (tag === 'SECTION' || tag === 'ARTICLE' || tag === 'LI') {
+      LOG(`  🎯 Found post container: <${tag.toLowerCase()}> at depth ${i+1}`);
+      return el;
+    }
+    el = el.parentElement;
+  }
+  // Fallback: go up 6 levels from the text element
+  el = textEl;
+  for (let i = 0; i < 6; i++) {
+    if (!el.parentElement || el.parentElement === document.body) break;
+    el = el.parentElement;
+  }
+  LOG(`  ⚠️  No section/article/li found — using ancestor at depth 6`);
+  return el;
+}
 
 const POST_SELECTOR  = POST_SELECTORS.join(', ');
 const TEXT_SELECTOR  = TEXT_SELECTORS.join(', ');
@@ -57,38 +52,14 @@ let processedPosts = new WeakSet();
 function discoverDOM() {
   LOG('🔍 Running DOM discovery on', location.pathname);
 
-  // Check each selector individually
-  POST_SELECTORS.forEach(sel => {
-    const matches = document.querySelectorAll(sel);
-    if (matches.length > 0) {
-      LOG(`  ✅ POST selector "${sel}" → ${matches.length} elements`);
-    } else {
-      WARN(`  ❌ POST selector "${sel}" → 0 elements`);
-    }
+  const anchors = document.querySelectorAll(TEXT_ANCHOR);
+  LOG(`  📝 .hasBreakWordsNoHyphen anchors in DOM: ${anchors.length}`);
+  Array.from(anchors).slice(0, 3).forEach((el, i) => {
+    LOG(`    [${i}] text: "${(el.innerText || '').slice(0,80).replace(/\n/g,' ')}"`);
   });
 
-  // Log first few data-* attributes of likely post containers to help tune selectors
-  const candidates = document.querySelectorAll('[data-id],[data-urn],[data-occludable-entity-urn]');
-  LOG(`  📦 Elements with data-id/data-urn/data-occludable-entity-urn: ${candidates.length}`);
-  Array.from(candidates).slice(0, 5).forEach((el, i) => {
-    LOG(`    [${i}] <${el.tagName.toLowerCase()} class="${el.className.slice(0,60)}..." data-id="${el.dataset.id || ''}" data-urn="${el.dataset.urn || ''}">`);
-  });
-
-  // Check text selectors
-  TEXT_SELECTORS.forEach(sel => {
-    const matches = document.querySelectorAll(sel);
-    if (matches.length > 0) {
-      LOG(`  ✅ TEXT selector "${sel}" → ${matches.length} elements`);
-    } else {
-      WARN(`  ❌ TEXT selector "${sel}" → 0 elements`);
-    }
-  });
-
-  // Log main/feed element
   const main = document.querySelector('main');
   LOG(`  📄 <main> found: ${!!main}`);
-  const feedContainer = document.querySelector('.scaffold-finite-scroll__content, .core-rail, [role="main"]');
-  LOG(`  📄 feed container: ${feedContainer ? feedContainer.className.slice(0,80) : 'NOT FOUND'}`);
 }
 
 // ── Settings ─────────────────────────────────────────────────────────────────
@@ -136,64 +107,44 @@ chrome.storage.onChanged.addListener((changes) => {
 
 // ── Post processing ───────────────────────────────────────────────────────────
 
-function getPostText(postEl) {
-  // 1. Try each text selector individually so we can log which one hits
-  for (const sel of TEXT_SELECTORS) {
-    const el = postEl.querySelector(sel);
-    if (el) {
-      const text = el.innerText || el.textContent || '';
-      if (text.trim()) {
-        LOG(`  📝 Text via "${sel}" (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}"`);
-        return text;
-      }
-    }
-  }
-
-  // 2. Fallback: look for any span[dir="ltr"] or p inside the post
-  const anyText = postEl.querySelector('span[dir="ltr"], p, [role="article"]');
-  if (anyText) {
-    const text = anyText.innerText || anyText.textContent || '';
-    WARN(`  ⚠️  Fallback text via <${anyText.tagName.toLowerCase()}> (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}"`);
-    return text;
-  }
-
-  // 3. Last resort: entire post element
-  const text = postEl.innerText || postEl.textContent || '';
-  WARN(`  ⚠️  No text selector matched — using full innerText (${text.length} chars)`);
+function getPostText(textAnchorEl) {
+  const text = textAnchorEl.innerText || textAnchorEl.textContent || '';
+  LOG(`  📝 Text from .hasBreakWordsNoHyphen (${text.length} chars): "${text.slice(0,80).replace(/\n/g,' ')}"`);
   return text;
 }
 
-function processPost(postEl) {
-  if (processedPosts.has(postEl)) return;
-  processedPosts.add(postEl);
+// Process a .hasBreakWordsNoHyphen text anchor — score it, find its post container, hide if bait
+function processTextAnchor(textEl) {
+  if (processedPosts.has(textEl)) return;
+  processedPosts.add(textEl);
 
-  if (!settings.enabled) {
-    LOG('⏸️  Skipping post (extension disabled)');
-    return;
-  }
+  if (!settings.enabled) return;
 
-  const tag   = `<${postEl.tagName.toLowerCase()} data-id="${postEl.dataset.id || postEl.dataset.urn || '?'}">`;
-  LOG(`🔎 Processing post: ${tag}`);
-
-  const text = getPostText(postEl);
+  const text = getPostText(textEl);
   if (!text.trim()) {
-    WARN('  ⚠️  Empty text — skipping post');
+    WARN('  ⚠️  Empty text anchor — skipping');
     return;
   }
 
   const { score, labels } = scoreText(text, settings.sensitivity);
   const threshold = { strict: 2, moderate: 3, loose: 5 }[settings.sensitivity] ?? 3;
 
-  LOG(`  📊 Score: ${score}/${threshold} | Labels: [${labels.join(', ') || 'none'}] | Sensitivity: ${settings.sensitivity}`);
+  LOG(`🔎 Text anchor scored: ${score}/${threshold} [${labels.join(', ') || 'none'}] → "${text.slice(0,60).replace(/\n/g,' ')}"`);
 
   if (score >= threshold) {
-    LOG(`  🚫 BAIT DETECTED — hiding post (score ${score} ≥ threshold ${threshold})`);
+    const postEl = findPostContainer(textEl);
+    if (processedPosts.has(postEl)) {
+      LOG('  ↩️  Post container already processed — skipping');
+      return;
+    }
+    processedPosts.add(postEl);
+    LOG(`  🚫 BAIT — hiding <${postEl.tagName.toLowerCase()}>`);
     hidePost(postEl);
     filteredCount++;
     saveFilteredCount();
     chrome.runtime.sendMessage({ type: 'COUNT_UPDATE', count: filteredCount }).catch(() => {});
   } else {
-    LOG(`  ✅ Post clean (score ${score} < threshold ${threshold}) — leaving visible`);
+    LOG(`  ✅ Clean (${score} < ${threshold})`);
   }
 }
 
@@ -255,13 +206,13 @@ function revealAll() {
 }
 
 function scanAll() {
-  const posts = document.querySelectorAll(POST_SELECTOR);
-  LOG(`🔍 scanAll() — found ${posts.length} post elements in DOM`);
-  if (posts.length === 0) {
-    WARN('  ⚠️  No posts found — selectors may need updating for current LinkedIn DOM');
+  const anchors = document.querySelectorAll(TEXT_ANCHOR);
+  LOG(`🔍 scanAll() — found ${anchors.length} .hasBreakWordsNoHyphen text anchors`);
+  if (anchors.length === 0) {
+    WARN('  ⚠️  No text anchors found — feed may not have rendered yet, observer will catch them');
     discoverDOM();
   }
-  posts.forEach(processPost);
+  anchors.forEach(processTextAnchor);
 }
 
 // ── MutationObserver ──────────────────────────────────────────────────────────
@@ -306,16 +257,16 @@ function startObserver() {
           domSpyCount++;
         }
 
-        // ── Normal selector matching ──────────────────────────────────────────
-        if (node.matches && node.matches(POST_SELECTOR)) {
+        // ── Anchor-based matching: look for text anchors in added subtree ────
+        if (node.matches && node.matches(TEXT_ANCHOR)) {
           found++;
-          processPost(node);
+          processTextAnchor(node);
         }
         if (node.querySelectorAll) {
-          const nested = node.querySelectorAll(POST_SELECTOR);
+          const nested = node.querySelectorAll(TEXT_ANCHOR);
           if (nested.length > 0) {
-            LOG(`  🎯 Found ${nested.length} nested post(s) inside added node`);
-            nested.forEach(el => { found++; processPost(el); });
+            LOG(`  🎯 Found ${nested.length} text anchor(s) inside added node`);
+            nested.forEach(el => { found++; processTextAnchor(el); });
           }
         }
       }
