@@ -108,14 +108,19 @@ function revealAll() {
 
 // ── Scan & observe ────────────────────────────────────────────────────────────
 function scanAll() {
-  const sections = document.querySelectorAll('main section');
-  LOG(`🔍 scanAll — ${sections.length} sections in <main>`);
-  sections.forEach(processSection);
+  // Watch entire body — LinkedIn renders feed posts OUTSIDE of <main>
+  const sections = document.querySelectorAll('section');
+  const eligible = Array.from(sections).filter(s => {
+    // Skip sections inside header, nav, footer, aside
+    return !s.closest('header, nav, footer, aside');
+  });
+  LOG(`🔍 scanAll — ${sections.length} total sections, ${eligible.length} eligible`);
+  eligible.forEach(processSection);
 }
 
 function startObserver() {
-  const root = document.querySelector('main') || document.body;
-  LOG('👁️ observer on', root.tagName);
+  const root = document.body;  // must be body — feed is outside <main>
+  LOG('👁️ observer on BODY');
 
   new MutationObserver(mutations => {
     if (!enabled) return;
