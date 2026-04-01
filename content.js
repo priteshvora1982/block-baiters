@@ -39,8 +39,6 @@ function findPostContainer(textEl) {
   return el;
 }
 
-const POST_SELECTOR  = POST_SELECTORS.join(', ');
-const TEXT_SELECTOR  = TEXT_SELECTORS.join(', ');
 
 let settings = { enabled: true, sensitivity: 'moderate' };
 let filteredCount = 0;
