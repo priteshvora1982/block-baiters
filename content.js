@@ -267,11 +267,13 @@ function scanAll() {
 // ── MutationObserver ──────────────────────────────────────────────────────────
 
 function startObserver() {
-  const feedRoot = document.querySelector('main') || document.body;
-  LOG(`👁️  MutationObserver attached to: <${feedRoot.tagName.toLowerCase()}>`);
+  // Watch document.body — LinkedIn may render posts outside <main>
+  const feedRoot = document.body;
+  LOG(`👁️  MutationObserver attached to: <body>`);
 
   let mutationCount = 0;
   let newPostCount  = 0;
+  let domSpyCount   = 0; // log first 30 added elements to discover real structure
 
   const observer = new MutationObserver((mutations) => {
     if (!settings.enabled) return;
@@ -281,25 +283,52 @@ function startObserver() {
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+        // ── DOM SPY: log first 30 elements to discover LinkedIn's real structure ──
+        if (domSpyCount < 30) {
+          const urn   = node.dataset?.urn   || node.dataset?.id || node.dataset?.occludableEntityUrn || '';
+          const testid = node.dataset?.testid || node.getAttribute?.('data-testid') || '';
+          const cls   = (node.className && typeof node.className === 'string')
+                          ? node.className.slice(0, 60) : '';
+          const childCount = node.children?.length || 0;
+          LOG(`🕵️  DOM SPY [${domSpyCount}] <${node.tagName?.toLowerCase()}> ` +
+              `data-urn="${urn}" data-testid="${testid}" ` +
+              `class="${cls}" children=${childCount}`);
+
+          // Also log data attributes of interesting large elements
+          if (childCount > 2) {
+            const attrs = Array.from(node.attributes || [])
+              .filter(a => a.name.startsWith('data-'))
+              .map(a => `${a.name}="${a.value.slice(0,40)}"`)
+              .join(' ');
+            if (attrs) LOG(`  └─ data attrs: ${attrs}`);
+          }
+          domSpyCount++;
+        }
+
+        // ── Normal selector matching ──────────────────────────────────────────
         if (node.matches && node.matches(POST_SELECTOR)) {
           found++;
           processPost(node);
         }
         if (node.querySelectorAll) {
           const nested = node.querySelectorAll(POST_SELECTOR);
-          nested.forEach(el => { found++; processPost(el); });
+          if (nested.length > 0) {
+            LOG(`  🎯 Found ${nested.length} nested post(s) inside added node`);
+            nested.forEach(el => { found++; processPost(el); });
+          }
         }
       }
     }
 
     newPostCount += found;
     if (found > 0) {
-      LOG(`👁️  Observer: +${found} new post(s) | total mutations: ${mutationCount} | total new posts seen: ${newPostCount}`);
+      LOG(`👁️  Observer: +${found} new post(s) | total mutations: ${mutationCount} | total posts seen: ${newPostCount}`);
     }
   });
 
   observer.observe(feedRoot, { childList: true, subtree: true });
-  LOG('✅ Observer running');
+  LOG('✅ Observer running — spying on first 30 DOM additions to discover LinkedIn structure');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
