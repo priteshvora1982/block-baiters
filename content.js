@@ -33,10 +33,11 @@ chrome.storage.onChanged.addListener(changes => {
 
 // ── Extract author + preview from post text ───────────────────────────────────
 function extractMeta(text) {
+  // "Feed post" is on its own line (the a11y span). Author is on the next non-empty line.
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-  const header = (lines[0] || '').replace(/^Feed post\s+/i, '');
-  const author  = header.split(/\s*[•·]\s*/)[0].trim().slice(0, 40) || 'Unknown';
-  const preview = lines.slice(1).find(l => l.length > 15) || '';
+  const authorLine = lines.find(l => l !== 'Feed post') || '';
+  const author = authorLine.split(/\s*[•·]\s*/)[0].trim().slice(0, 40) || 'Unknown';
+  const preview = lines.find(l => l.length > 20 && l !== 'Feed post' && l !== authorLine) || '';
   return { author, preview: preview.slice(0, 60) };
 }
 
